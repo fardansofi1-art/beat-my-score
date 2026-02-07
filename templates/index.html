@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Beat My Score</title>
+
+<style>
+
+*{
+ box-sizing:border-box;
+}
+
+body{
+ margin:0;
+ min-height:100vh;
+ display:flex;
+ justify-content:center;
+ align-items:center;
+ background:linear-gradient(135deg,#000,#222);
+ font-family:Arial;
+ color:white;
+}
+
+.card{
+ background:#111;
+ padding:30px;
+ border-radius:20px;
+ width:350px;
+ text-align:center;
+ box-shadow:0 0 25px #000;
+}
+
+h1{
+ margin-top:0;
+}
+
+input{
+ width:100%;
+ padding:12px;
+ border-radius:10px;
+ border:none;
+ outline:none;
+ font-size:16px;
+ margin-bottom:15px;
+}
+
+#tap{
+ margin-top:15px;
+ width:150px;
+ height:150px;
+ border-radius:50%;
+ border:none;
+ background:#00ffcc;
+ font-size:26px;
+ font-weight:bold;
+ cursor:pointer;
+ box-shadow:0 0 20px #00ffcc;
+}
+
+#tap:active{
+ transform:scale(.95);
+}
+
+.bar{
+ width:100%;
+ height:10px;
+ background:#333;
+ border-radius:10px;
+ overflow:hidden;
+ margin:10px 0;
+}
+
+#progress{
+ height:100%;
+ width:100%;
+ background:#00ff00;
+ transition:.3s;
+}
+
+.score{
+ font-size:26px;
+ margin:10px 0;
+}
+
+.leader{
+ margin-top:20px;
+}
+
+.winner{
+ background:#0f02;
+ border:2px solid #00ff00;
+ padding:10px;
+ border-radius:10px;
+ margin:5px 0;
+ color:#00ff00;
+ animation:glow 1s infinite alternate;
+}
+
+.loser{
+ background:#f002;
+ border:2px solid red;
+ padding:10px;
+ border-radius:10px;
+ margin:5px 0;
+ color:red;
+}
+
+@keyframes glow{
+ from{box-shadow:0 0 5px #00ff00;}
+ to{box-shadow:0 0 20px #00ff00;}
+}
+
+</style>
+</head>
+
+<body>
+
+<div class="card">
+
+<h1>🔥 Beat My Score</h1>
+
+<input id="name" name="name" placeholder="Enter your name">
+
+<div class="bar">
+ <div id="progress"></div>
+</div>
+
+<div>Time Left: <span id="time">5</span></div>
+<div class="score">Score: <span id="score">0</span></div>
+
+<button id="tap" onclick="tap()">TAP</button>
+
+<div class="leader">
+
+<h3>🏆 Leaderboard</h3>
+
+{% for p in leaderboard %}
+<div class="{{p.status}}">
+{% if p.status=="winner" %}
+👑 {{p.name}} WON — {{p.score}}
+{% else %}
+🔴 {{p.name}} LOSER — {{p.score}}
+{% endif %}
+</div>
+{% endfor %}
+
+</div>
+
+</div>
+
+<script>
+
+let score=0;
+let time=5;
+let started=false;
+
+function tap(){
+
+ if(document.getElementById("name").value==""){
+   alert("Enter name first!");
+   return;
+ }
+
+ if(!started){
+   started=true;
+   timer();
+ }
+
+ score++;
+ document.getElementById("score").innerText=score;
+}
+
+function timer(){
+
+ let bar=document.getElementById("progress");
+
+ let t=setInterval(()=>{
+
+   time--;
+   document.getElementById("time").innerText=time;
+   bar.style.width=(time/5*100)+"%";
+
+   if(time==0){
+     clearInterval(t);
+     endGame();
+   }
+
+ },1000);
+}
+
+function endGame(){
+
+ fetch("/submit",{
+   method:"POST",
+   headers:{'Content-Type':'application/x-www-form-urlencoded'},
+   body:`name=${document.getElementById("name").value}&score=${score}`
+ });
+
+ alert(document.getElementById("name").value+" scored "+score+" 🔥");
+
+ location.reload();
+}
+
+</script>
+
+</body>
+</html>
