@@ -2,31 +2,117 @@
 <html>
 <head>
 <title>Beat My Score</title>
+ <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
 
-<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
 
 <style>
 
+*{
+ touch-action: manipulation;
+ user-select: none;
+ -webkit-user-select:none;
+ -ms-user-select:none;
+}
+
+
 body{
- background:#111;
+ margin:0;
+ min-height:100vh;
+ display:flex;
+ justify-content:center;
+ align-items:center;
+ background:linear-gradient(135deg,#000,#222);
+ font-family:Arial;
  color:white;
- text-align:center;
- font-family:arial;
  overscroll-behavior:none;
 }
 
-*{
- touch-action:manipulation;
- user-select:none;
+.card{
+ background:#111;
+ padding:30px;
+ border-radius:20px;
+ width:350px;
+ text-align:center;
+ box-shadow:0 0 25px #000;
+}
+
+h1{
+ margin-top:0;
+}
+
+input{
+ width:100%;
+ padding:12px;
+ border-radius:10px;
+ border:none;
+ outline:none;
+ font-size:16px;
+ margin-bottom:15px;
 }
 
 #tap{
- font-size:30px;
- padding:30px 60px;
+ font-size:28px;
+ padding:25px 50px;
  border-radius:15px;
  border:none;
  background:white;
  margin-top:20px;
+
+ touch-action: manipulation;
+}
+
+
+#tap:active{
+ transform:scale(.95);
+}
+
+.bar{
+ width:100%;
+ height:10px;
+ background:#333;
+ border-radius:10px;
+ overflow:hidden;
+ margin:10px 0;
+}
+
+#progress{
+ height:100%;
+ width:100%;
+ background:#00ff00;
+ transition:.3s;
+}
+
+.score{
+ font-size:26px;
+ margin:10px 0;
+}
+
+.leader{
+ margin-top:20px;
+}
+
+.winner{
+ background:#0f02;
+ border:2px solid #00ff00;
+ padding:10px;
+ border-radius:10px;
+ margin:5px 0;
+ color:#00ff00;
+ animation:glow 1s infinite alternate;
+}
+
+.loser{
+ background:#f002;
+ border:2px solid red;
+ padding:10px;
+ border-radius:10px;
+ margin:5px 0;
+ color:red;
+}
+
+@keyframes glow{
+ from{box-shadow:0 0 5px #00ff00;}
+ to{box-shadow:0 0 20px #00ff00;}
 }
 
 </style>
@@ -34,48 +120,59 @@ body{
 
 <body>
 
-<h1>🔥 Beat My Score 🔥</h1>
+<div class="card">
 
-<input id="name" placeholder="Enter Name">
+<h1>🔥 Beat My Score</h1>
 
-<h2>Time: <span id="time">5</span></h2>
-<h2>Score: <span id="score">0</span></h2>
+<input id="name" name="name" placeholder="Enter your name">
+
+<div class="bar">
+ <div id="progress"></div>
+</div>
+
+<div>Time Left: <span id="time">5</span></div>
+<div class="score">Score: <span id="score">0</span></div>
 
 <button id="tap" ontouchstart="tap()">TAP!</button>
 
-<br><br>
+<div class="leader">
 
-<button onclick="replay()">Replay</button>
+<h3>🏆 Leaderboard</h3>
 
-<h2>🏆 Leaderboard</h2>
-
-<ul>
 {% for p in leaderboard %}
-<li>👤 {{p[0]}} — 🔥 {{p[1]}}</li>
+<div class="{{p.status}}">
+{% if p.status=="winner" %}
+👑 {{p.name}} WON — {{p.score}}
+{% else %}
+🔴 {{p.name}} LOSER — {{p.score}}
+{% endif %}
+</div>
 {% endfor %}
-</ul>
+
+</div>
+
+</div>
 
 <script>
+ window.onload = function(){
+  if(localStorage.getItem("player")){
+    document.getElementById("name").value = localStorage.getItem("player");
+  }
+}
+
 
 let score=0;
 let time=5;
 let started=false;
 
-// remember name
-window.onload=function(){
- if(localStorage.getItem("player")){
-   document.getElementById("name").value=localStorage.getItem("player");
- }
-}
-
 function tap(){
 
- if(name.value==""){
-   alert("Enter name!");
+ if(document.getElementById("name").value==""){
+   alert("Enter name first!");
    return;
  }
+ localStorage.setItem("player", document.getElementById("name").value);
 
- localStorage.setItem("player",name.value);
 
  if(!started){
    started=true;
@@ -87,46 +184,34 @@ function tap(){
 }
 
 function timer(){
+
+ let bar=document.getElementById("progress");
+
  let t=setInterval(()=>{
+
    time--;
    document.getElementById("time").innerText=time;
+   bar.style.width=(time/5*100)+"%";
 
    if(time==0){
      clearInterval(t);
      endGame();
    }
+
  },1000);
 }
 
 function endGame(){
 
  fetch("/submit",{
-  method:"POST",
-  headers:{'Content-Type':'application/x-www-form-urlencoded'},
-  body:`name=${name.value}&score=${score}`
+   method:"POST",
+   headers:{'Content-Type':'application/x-www-form-urlencoded'},
+   body:`name=${document.getElementById("name").value}&score=${score}`
  });
 
- alert(name.value+" scored "+score);
+ alert(document.getElementById("name").value+" scored "+score+" 🔥");
 
  location.reload();
-}
-
-function replay(){
-
- fetch("/reset_player",{
-  method:"POST",
-  headers:{'Content-Type':'application/x-www-form-urlencoded'},
-  body:`name=${name.value}`
- });
-
- score=0;
- time=5;
- started=false;
-
- document.getElementById("score").innerText=0;
- document.getElementById("time").innerText=5;
-
- alert("Previous score cleared. Play again!");
 }
 
 </script>
