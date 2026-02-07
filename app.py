@@ -1,53 +1,68 @@
 from flask import Flask, render_template, request
-import os
+import sqlite3
 
 app = Flask(__name__)
+DB="game.db"
 
-def get_scores():
-    if not os.path.exists("scores.txt"):
-        return []
+def db():
+    return sqlite3.connect(DB)
 
-    players = []
+def init():
+    con=db()
+    cur=con.cursor()
 
-    with open("scores.txt") as f:
-        for line in f:
-            if "," in line:
-                name, score = line.strip().split(",")
-                players.append({"name": name, "score": int(score)})
+    cur.execute("""
+    CREATE TABLE IF NOT EXISTS players(
+        id INTEGER PRIMARY KEY,
+        name TEXT UNIQUE,
+        score INTEGER DEFAULT 0
+    )
+    """)
 
-    players.sort(key=lambda x: x["score"], reverse=True)
+    con.commit()
+    con.close()
 
-    # First is winner, rest losers
-    for i, p in enumerate(players):
-        if i == 0:
-            p["status"] = "winner"
-        else:
-            p["status"] = "loser"
-
-    return players[:10]
+init()
 
 @app.route("/")
 def home():
-    leaderboard = get_scores()
+    con=db()
+    cur=con.cursor()
+
+    cur.execute("SELECT name,score FROM players ORDER BY score DESC")
+    leaderboard=cur.fetchall()
+
+    con.close()
+
     return render_template("index.html", leaderboard=leaderboard)
 
-@app.route("/submit", methods=["POST"])
+@app.route("/submit",methods=["POST"])
 def submit():
-    name = request.form["name"].strip()
-    score = request.form["score"]
+    name=request.form["name"]
+    score=int(request.form["score"])
 
-    if name == "":
-        name = "Anonymous"
+    con=db()
+    cur=con.cursor()
 
-    with open("scores.txt", "a") as f:
-        f.write(f"{name},{score}\n")
+    cur.execute("INSERT OR IGNORE INTO players(name) VALUES(?)",(name,))
+    cur.execute("UPDATE players SET score=? WHERE name=?",(score,name))
 
-    return "OK"
+    con.commit()
+    con.close()
 
-if __name__ == "__main__":
-    port = int(os.environ.get("PORT", 10000))
-    app.run(host="0.0.0.0", port=port)
+    return "ok"
 
+@app.route("/reset_player",methods=["POST"])
+def reset_player():
+    name=request.form["name"]
 
+    con=db()
+    cur=con.cursor()
+    cur.execute("UPDATE players SET score=0 WHERE name=?",(name,))
+    con.commit()
+    con.close()
 
+    return "ok"
 
+if __name__=="__main__":
+    app.run(host="0.0.0.0",port=5000)
