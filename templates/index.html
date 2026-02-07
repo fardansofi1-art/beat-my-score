@@ -8,12 +8,8 @@
 <style>
 
 *{
- touch-action: manipulation;
- user-select: none;
- -webkit-user-select:none;
- -ms-user-select:none;
+ box-sizing:border-box;
 }
-
 
 body{
  margin:0;
@@ -25,6 +21,7 @@ body{
  font-family:Arial;
  color:white;
  overscroll-behavior:none;
+
 }
 
 .card{
@@ -132,8 +129,8 @@ input{
 
 <div>Time Left: <span id="time">5</span></div>
 <div class="score">Score: <span id="score">0</span></div>
-
 <button id="tap" ontouchstart="tap()">TAP!</button>
+
 
 <div class="leader">
 
@@ -154,12 +151,6 @@ input{
 </div>
 
 <script>
- window.onload = function(){
-  if(localStorage.getItem("player")){
-    document.getElementById("name").value = localStorage.getItem("player");
-  }
-}
-
 
 let score=0;
 let time=5;
@@ -171,8 +162,6 @@ function tap(){
    alert("Enter name first!");
    return;
  }
- localStorage.setItem("player", document.getElementById("name").value);
-
 
  if(!started){
    started=true;
