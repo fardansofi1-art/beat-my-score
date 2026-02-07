@@ -2,12 +2,18 @@
 <html>
 <head>
 <title>Beat My Score</title>
+ <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+
 
 <style>
 
 *{
- box-sizing:border-box;
+ touch-action: manipulation;
+ user-select: none;
+ -webkit-user-select:none;
+ -ms-user-select:none;
 }
+
 
 body{
  margin:0;
@@ -18,6 +24,7 @@ body{
  background:linear-gradient(135deg,#000,#222);
  font-family:Arial;
  color:white;
+ overscroll-behavior:none;
 }
 
 .card{
@@ -44,17 +51,16 @@ input{
 }
 
 #tap{
- margin-top:15px;
- width:150px;
- height:150px;
- border-radius:50%;
+ font-size:28px;
+ padding:25px 50px;
+ border-radius:15px;
  border:none;
- background:#00ffcc;
- font-size:26px;
- font-weight:bold;
- cursor:pointer;
- box-shadow:0 0 20px #00ffcc;
+ background:white;
+ margin-top:20px;
+
+ touch-action: manipulation;
 }
+
 
 #tap:active{
  transform:scale(.95);
@@ -127,7 +133,7 @@ input{
 <div>Time Left: <span id="time">5</span></div>
 <div class="score">Score: <span id="score">0</span></div>
 
-<button id="tap" onclick="tap()">TAP</button>
+<button id="tap" ontouchstart="tap()">TAP!</button>
 
 <div class="leader">
 
