@@ -154,6 +154,12 @@ input{
 </div>
 
 <script>
+ window.onload = function(){
+  if(localStorage.getItem("player")){
+    document.getElementById("name").value = localStorage.getItem("player");
+  }
+}
+
 
 let score=0;
 let time=5;
@@ -165,6 +171,8 @@ function tap(){
    alert("Enter name first!");
    return;
  }
+ localStorage.setItem("player", document.getElementById("name").value);
+
 
  if(!started){
    started=true;
