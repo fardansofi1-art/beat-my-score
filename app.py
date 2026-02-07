@@ -39,14 +39,30 @@ def submit():
     if name == "":
         name = "Anonymous"
 
-    with open("scores.txt", "a") as f:
-        f.write(f"{name},{score}\n")
+    players = {}
+
+    if os.path.exists("scores.txt"):
+        with open("scores.txt") as f:
+            for line in f:
+                if "," in line:
+                    n,s = line.strip().split(",")
+                    players[n] = s   # overwrite old
+
+    # overwrite this player's score
+    players[name] = score
+
+    # write back CLEAN file
+    with open("scores.txt","w") as f:
+        for n,s in players.items():
+            f.write(f"{n},{s}\n")
 
     return "OK"
+
 
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 10000))
     app.run(host="0.0.0.0", port=port)
+
 
 
 
